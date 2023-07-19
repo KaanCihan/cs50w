@@ -1,0 +1,24 @@
+{% extends "encyclopedia/layout.html" %}
+
+{% block title %}
+    Encyclopedia
+{% endblock %}
+
+{% block body %}
+    {% if entry_count == all_entries %} 
+        <h1>All Pages</h1>
+    {% else %}
+        <h1>Search Results..</h1>
+        {% if entry_count == 0 %}
+            <p style="font-size: 50px; margin: 25px;"> No match found.. </p>
+        {% endif %}
+
+    {% endif %}
+    
+    {% for entry in entries %}
+        <li class="list-group-item"><a href="{% url 'wiki_page' title=entry %}">{{ entry }}</a></li>
+    {% endfor %}
+    
+    
+
+{% endblock %}

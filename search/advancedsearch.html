@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>Search</title>
+        <link rel="stylesheet" type="text/css" href="style.css" />
+    </head>
+    <body>
+        <h1 style="font-size: 30px; margin: 20px;">Google</h1>
+        <div style="margin-top: 70px; font-size: 20px; margin-bottom: 30px; margin-left: 30px; color: #8B0000; font-weight: bold;">Advanced Search</div>
+        <div><hr class="solid"></div>
+        <form style="margin-top: 100px;" action="https://www.google.com/search">
+            <h3>Find pages with...</h3>
+            <div> 
+                <div>
+                    <label class="label" for="field1">all these words: </label>
+                </div>
+                <div>
+                    <input class="forminput" type="text" id="field1" name="as_q" value="">
+                </div>
+            </div>
+            <div>
+                <div>
+                    <label class="label" for="field2">this exact word or phrase:</label>
+                </div>
+                <div>
+                    <input class="forminput" type="text" id="field2" name="as_epq" value="">
+                </div>
+            </div>
+            <div>   
+                <div>
+                    <label class="label" for="field3">any of these words:</label> 
+                </div>
+                <div>
+                    <input class="forminput" type="text" id="field3" name="as_oq" value="">
+                </div>
+            </div>
+            <div>
+                <div>
+                    <label class="label" for="field4">none of these words:</label>
+                </div>
+                <div>
+                    <input class="forminput" type="text" id="field4" name="as_eq" value="">
+                </div>
+            </div>  
+            <div>
+                <input class="advanced_search_button" type="submit" value="Advanced Search">
+            </div>           
+        </form>    
+    </body>
+</html>
+
