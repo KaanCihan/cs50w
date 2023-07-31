@@ -1,0 +1,10 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+    <h2>Active Listings</h2>
+    {% for list in listings %}
+        
+        <li class="list-group-item" style="background-color: #343a40; color: aliceblue;"><a href="{% url 'listing' pk=list.code %}">{{ list.name }}</a></li>
+    {% endfor %}
+    
+{% endblock %}
