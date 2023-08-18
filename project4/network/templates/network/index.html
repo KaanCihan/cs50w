@@ -1,0 +1,18 @@
+{% extends "network/layout.html" %}
+
+{% block body %}
+    <div id="post">
+        <form action="post" method="POST">
+        {% csrf_token %}
+        <div class="form-group">
+            <input class="form-control" required="required" placeholder="How do you feel?">
+        </div>
+        <input id="post_it" type="submit" class="btn btn-primary"/>
+        </form>
+    </div>
+    
+    <div id="timeline">
+    
+    </div>
+{% endblock %}
+

@@ -68,11 +68,9 @@ function load_mailbox(mailbox) {
   // Show the mailbox name
   document.querySelector('#emails-view').innerHTML = `<h3>${mailbox.charAt(0).toUpperCase() + mailbox.slice(1)}</h3>`;
   
-  console.log("deneme");
   fetch(`/emails/${mailbox}`)
     .then(response => response.json())
     .then(emails => {
-      console.log(emails);
       // Print emails
       for (let i = 0; i < emails.length; i++) {
         const element = document.createElement('div');
