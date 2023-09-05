@@ -7,7 +7,7 @@ class User(AbstractUser):
 
 class Post(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="user")
-    poster = models.ForeignKey(User, on_delete=models.CASCADE, related_name="sender")
+    poster = models.ForeignKey(User, on_delete=models.PROTECT, related_name="poster")
     body = models.TextField()
     timestamp = models.DateTimeField(auto_now_add=True)
     archived = models.BooleanField(default=False)
@@ -16,7 +16,7 @@ class Post(models.Model):
         return {
             "id": self.id,
             "body": self.body,
-            "user": self.poster.username,
+            "poster": self.poster.username,
             "timestamp": self.timestamp.strftime("%b %d %Y, %I:%M %p"),
             "followers": [follower.username for follower in self.user.followers.all()],
             "archived": self.archived

@@ -5,6 +5,7 @@ from django.shortcuts import render
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 import json
+from django.contrib.auth.decorators import login_required
 
 from .models import *
 
@@ -12,26 +13,49 @@ from .models import *
 def index(request):
     return render(request, "network/index.html")
 
+@csrf_exempt
+@login_required
 def post(request):
     if request.method != "POST":
         return JsonResponse({"error": "POST request required."}, status=400)
 
-    
-    data = json.loads(request.POST)
-    print(data)
+    data = json.loads(request.body)
 
+    if data == "":
+        return JsonResponse({
+            "error": "Empty body"
+        }, status=400)
 
+    print(request.user)
+    body = data.get("body", "")
+    postt = Post(
+        user=request.user,
+        poster=request.user,
+        body=body
+    )
+    postt.save()
+
+    return JsonResponse({"message" : "Post posted successfully"}, status=201)
+
+@login_required
 def timeline(request, timeline):
-    if timeline == "allposts":
+    if timeline == "following":
+        following_users = request.user.following_actions.all().values_list('followed', flat=True)
         posts =  Post.objects.filter(
-            user = request.user
-        )
-        
-    elif timeline == "following":
+            user__in=following_users
+        )    
+    elif timeline == "allposts":
         posts = Post.objects.all()
+    elif User.objects.filter(username=timeline).exists():
+        user = User.objects.get(username=timeline)
+        posts = Post.objects.filter(poster=user)
     else:
         return JsonResponse({"error": "Invalid choice."}, status=400)
     
+    if User.objects.filter(username="kaancık").exists():
+        print("basarili")
+
+    print(User.objects.all())
     posts =posts.order_by("?")
 
     return JsonResponse([post.serialize() for post in posts], safe=False)
