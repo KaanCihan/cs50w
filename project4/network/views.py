@@ -40,10 +40,7 @@ def post(request):
 @login_required
 def timeline(request, timeline):
     if timeline == "following":
-        following_users = request.user.following_actions.all().values_list('followed', flat=True)
-        posts =  Post.objects.filter(
-            user__in=following_users
-        )    
+        print('deneme')
     elif timeline == "allposts":
         posts = Post.objects.all()
     elif User.objects.filter(username=timeline).exists():
@@ -52,11 +49,7 @@ def timeline(request, timeline):
     else:
         return JsonResponse({"error": "Invalid choice."}, status=400)
     
-    if User.objects.filter(username="kaancık").exists():
-        print("basarili")
-
-    print(User.objects.all())
-    posts =posts.order_by("?")
+    posts = posts.order_by("?")
 
     return JsonResponse([post.serialize() for post in posts], safe=False)
     

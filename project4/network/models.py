@@ -3,7 +3,7 @@ from django.db import models
 
 
 class User(AbstractUser):
-    followers = models.ManyToManyField("self", symmetrical=False, related_name='followed_by', blank=True)
+    pass
 
 class Post(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="user")
@@ -22,11 +22,8 @@ class Post(models.Model):
             "archived": self.archived
         }
 
-class Follow(models.Model):
-    follower = models.ForeignKey(User, on_delete=models.CASCADE, related_name="following_actions")
-    followed = models.ForeignKey(User, on_delete=models.CASCADE, related_name="followers_actions")
-    timestamp = models.DateTimeField(auto_now_add=True)
+class UserFollowing(models.Model):
+    user_id = models.ForeignKey("User", on_delete=models.CASCADE, related_name="following")
+    following_user_id = models.ForeignKey("User",on_delete=models.PROTECT, related_name="followers")
 
-    class Meta:
-        unique_together = ('follower', 'followed')
-
+    follow_time = models.DateTimeField(auto_now_add=True)

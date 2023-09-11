@@ -7,7 +7,10 @@ document.addEventListener("DOMContentLoaded", function() {
     });
     document.querySelector('#click-following').addEventListener('click', () => load_timeline('following'));
     load_timeline('allposts');
+    
+    
 
+    
     document.querySelector('#post-post').addEventListener('submit', function() {
         const body = document.querySelector('#post-body').value;
         console.log('basari');
@@ -44,17 +47,35 @@ document.addEventListener("DOMContentLoaded", function() {
                 for (let i = 0; i < posts.length; i++){
                     console.log(posts[i]);
 
-                    const element = document.createElement('div');
+                    const posterr = document.createElement('a');
+                    posterr.setAttribute('href', 'javascript:;');
+                    posterr.setAttribute('data-username', posts[i].poster)
+                    posterr.style.fontWeight = 'bold';
+                    posterr.className = "username-a";
+                    posterr.innerHTML = posts[i].poster;
+                    posterr.classList.add('username-a');
+                    
+                    const body = document.createElement('span');
+                    body.innerHTML = posts[i].body;
+                    
                     const post = document.createElement('div');
-                    
-                    
-                    post.innerHTML = '<span class="bold-poster" style="font-style: italic;">' + posts[i].poster +  '</span>' + "<br>" + posts[i].body + "<br>";
+                    post.style.marginBottom = "50px";
                     post.classList.add('post-style');
                     
-                    element.appendChild(post);
-                    element.style.marginBottom = "50px";
-                    document.querySelector('#timeline').append(element);
+                    post.appendChild(posterr);
+                    post.appendChild(document.createElement('br'));
+                    post.appendChild(body);
+                    
+                    
+                    document.querySelector('#timeline').append(post);
                 }
+
+                document.querySelectorAll('.username-a').forEach(function(anchor) {
+                    anchor.onclick = function() {
+                        const poster = anchor.getAttribute('data-username');
+                        load_timeline(poster);
+                    }
+                });
             })
 
     }
