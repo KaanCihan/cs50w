@@ -1,18 +1,24 @@
 {% extends "network/layout.html" %}
+{% load static %}
 
 {% block body %}
     <div id="post">
-        <form action="post" method="POST">
-        {% csrf_token %}
-        <div class="form-group">
-            <input class="form-control" required="required" placeholder="How do you feel?">
-        </div>
-        <input id="post_it" type="submit" class="btn btn-primary"/>
+        <form id="post-post">
+            {% csrf_token %}
+            <div class="form-group">
+                <input class="form-control" required="required" placeholder="How do you feel?" id="post-body"> 
+            </div>
+            <input id="post_it" type="submit" class="btn btn-primary"/>
         </form>
     </div>
     
     <div id="timeline">
-    
+        {% csrf_token %}
     </div>
 {% endblock %}
 
+{% block script %}
+    <script src="{% static 'network/timeline.js' %}"></script>
+{% endblock %}
+
+ 
