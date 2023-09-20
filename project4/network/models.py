@@ -1,5 +1,6 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.db.models import UniqueConstraint
 
 
 class User(AbstractUser):
@@ -17,13 +18,33 @@ class Post(models.Model):
             "id": self.id,
             "body": self.body,
             "poster": self.poster.username,
-            "timestamp": self.timestamp.strftime("%b %d %Y, %I:%M %p"),
-            "followers": [follower.username for follower in self.user.followers.all()],
+            "timestamp": self.timestamp.strftime("%#m/%#d/%Y, %H:%M:%S"),
+            #"followers": [follower.username for follower in self.user.followers.all()],
             "archived": self.archived
         }
 
 class UserFollowing(models.Model):
-    user_id = models.ForeignKey("User", on_delete=models.CASCADE, related_name="following")
-    following_user_id = models.ForeignKey("User",on_delete=models.PROTECT, related_name="followers")
+    user_id = models.ForeignKey("User", on_delete=models.PROTECT, related_name="following")
+    followed_user_id = models.ForeignKey("User",on_delete=models.CASCADE, null=True, related_name="followed")
 
     follow_time = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            UniqueConstraint(
+                fields=['user_id', 'followed_user_id'],
+                name='unique_follow'
+            ),
+
+            models.CheckConstraint(
+                check=~models.Q(user_id=models.F('followed_user_id')),
+                name='self_follow_check'
+            )
+        ]
+    
+    def serialize(self):
+        return {
+            "id": self.id
+        }
+
+    
