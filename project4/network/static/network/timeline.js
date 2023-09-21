@@ -122,7 +122,12 @@ document.addEventListener("DOMContentLoaded", function() {
 
                     const time = document.createElement('span');
                     time.innerHTML = stamp;
-                    
+
+                    if (posts[i].poster == data.user){
+                        const buttonEdit = document.createElement('button');
+                        buttonEdit.innerHTML = 'edit';
+                        post.appendChild(buttonEdit)
+                    }
 
                     post.style.marginBottom = "50px";
                     post.classList.add('post-style');
