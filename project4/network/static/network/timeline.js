@@ -125,88 +125,10 @@ document.addEventListener("DOMContentLoaded", function() {
 
                 print_post(posts, parts1, data, postPage);
                 postPage++;
-                document.querySelectorAll('.edit-button').forEach(function(button) {
-                    button.onclick = function() {
-                        button.disabled = true;
-                        var clickedButton = this;
-                        let parentPost = clickedButton.parentNode;
-                        const postId = parentPost.id;
-                        const spanElement = parentPost.querySelector('.post-body').textContent;
-
-                        console.log(parentPost.querySelector('.post-body'));
-                        console.log(spanElement);
-                        console.log(parentPost);
-
-                        const textarea = document.createElement('textarea');
-                        textarea.value = spanElement;
-
-                        
-                        const saveButton = document.createElement('button');
-                        saveButton.textContent = 'Save';
-                        saveButton.className = 'btn btn-success save-button';
-
-                        parentPost.querySelector('.post-body').innerHTML = '';
-                        parentPost.appendChild(textarea);
-                        parentPost.appendChild(saveButton);
-
-                        saveButton.onclick = function() {
-                            parentPost.querySelector('.post-body').innerHTML = textarea.value;
-                            const updatedBody = textarea.value;
-
-                            fetch(`/update/${parentPost.id}`, {
-                                method: 'PUT',
-                                headers: {
-                                    'X-CSRFToken': `${csrfToken.value}`,
-                                    'Content-Type': 'application/json'
-                                },
-                                body: JSON.stringify({
-                                    body: updatedBody
-                                })
-                            })
-                            .then(response => response.json())
-                            .then(result => {
-                                button.disabled = false;
-                                console.log(result);
-                            });
-                            parentPost.removeChild(saveButton);
-                            parentPost.removeChild(textarea);
-                        }
-
-                    }
-                });
+               
                 
                 
-                document.querySelectorAll('.btn.btn-outline-danger').forEach(function(button) {
-                    button.onclick = function() {
-                        
-                        console.log(document.scrollHeight);
-
-                        const emptyLike = document.createElement('img');
-                        const like = document.createElement('img');
-
-                        console.log(scroll);
-
-                        emptyLike.src = emptyHeart;
-                        like.src = heart;
-                        like.style.width = "15px";
-                        emptyLike.style.width = "15px";
-                        fetch(`/posts/${data.user}/${this.id}/like`, {
-                            method: "POST",
-                            headers: {
-                                'X-CSRFToken': `${csrfToken.value}`,
-                                'Content-Type': 'application/json'
-                            }
-                        }).then(response => response.json())   
-                        .then(data => {
-                            button.innerHTML = '';
-                            if (data.liked_or_not){
-                                button.appendChild(like);
-                            } else {
-                                button.appendChild(emptyLike);
-                            }
-                        });
-                    }
-                });
+                
 
                 document.querySelectorAll('.username-a').forEach(function(anchor) {
                     anchor.onclick = function() {
@@ -285,7 +207,8 @@ function like_unlike(user, id, likeButton){
     });
 }
 
-function print_post(posts, parts1, data, postPage){
+function print_post(posts, parts1, data, postPage, csrfToken){
+    var csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]');
     console.log(postPage);
     let c = postPage * 5;
     if (c > posts.length){
@@ -347,7 +270,22 @@ function print_post(posts, parts1, data, postPage){
         likeButton.style.paddingLeft = "5px";
         likeButton.style.margin = "10px";
         likeButton.id = posts[i].id;
-        likeButton.appendChild(emptyLike);
+
+        fetch(`/posts/${data.user}/${posts[i].id}/like`, {
+            method: "GET",
+            headers: {
+                'X-CSRFToken': `${csrfToken.value}`,
+                'Content-Type': 'application/json'
+            }
+        }).then(response => response.json())   
+        .then(data => {
+            if (data.liked_or_not){
+                likeButton.appendChild(like);
+            } else {
+                likeButton.appendChild(emptyLike);
+            }
+        });
+
 
         
         
@@ -372,6 +310,88 @@ function print_post(posts, parts1, data, postPage){
         post.appendChild(likeButton);
         
         document.querySelector('#timeline').append(post);
+
+        document.querySelectorAll('.edit-button').forEach(function(button) {
+            button.onclick = function() {
+                button.disabled = true;
+                var clickedButton = this;
+                let parentPost = clickedButton.parentNode;
+                const postId = parentPost.id;
+                const spanElement = parentPost.querySelector('.post-body').textContent;
+
+                console.log(parentPost.querySelector('.post-body'));
+                console.log(spanElement);
+                console.log(parentPost);
+
+                const textarea = document.createElement('textarea');
+                textarea.value = spanElement;
+
+                
+                const saveButton = document.createElement('button');
+                saveButton.textContent = 'Save';
+                saveButton.className = 'btn btn-success save-button';
+
+                parentPost.querySelector('.post-body').innerHTML = '';
+                parentPost.appendChild(textarea);
+                parentPost.appendChild(saveButton);
+
+                saveButton.onclick = function() {
+                    parentPost.querySelector('.post-body').innerHTML = textarea.value;
+                    const updatedBody = textarea.value;
+
+                    fetch(`/update/${parentPost.id}`, {
+                        method: 'PUT',
+                        headers: {
+                            'X-CSRFToken': `${csrfToken.value}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            body: updatedBody
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(result => {
+                        button.disabled = false;
+                        console.log(result);
+                    });
+                    parentPost.removeChild(saveButton);
+                    parentPost.removeChild(textarea);
+                }
+
+            }
+        });
+
+        document.querySelectorAll('.btn.btn-outline-danger').forEach(function(button) {
+            button.onclick = function() {
+                
+                console.log(document.scrollHeight);
+
+                const emptyLike = document.createElement('img');
+                const like = document.createElement('img');
+
+                console.log(scroll);
+
+                emptyLike.src = emptyHeart;
+                like.src = heart;
+                like.style.width = "15px";
+                emptyLike.style.width = "15px";
+                fetch(`/posts/${data.user}/${this.id}/like`, {
+                    method: "POST",
+                    headers: {
+                        'X-CSRFToken': `${csrfToken.value}`,
+                        'Content-Type': 'application/json'
+                    }
+                }).then(response => response.json())   
+                .then(data => {
+                    button.innerHTML = '';
+                    if (data.liked_or_not){
+                        button.appendChild(like);
+                    } else {
+                        button.appendChild(emptyLike);
+                    }
+                });
+            }
+        });
         
     }
 }
