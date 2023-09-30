@@ -2,6 +2,10 @@
 {% load static %}
 
 {% block body %}
+    <script>
+        var emptyHeart = "{% static 'network/emptyheart.png' %}";
+        var heart = "{% static 'network/heart.png' %}";
+    </script>
     <div id="post">
         <form id="post-post">
             {% csrf_token %}

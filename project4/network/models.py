@@ -10,9 +10,13 @@ class Post(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="user")
     poster = models.ForeignKey(User, on_delete=models.PROTECT, related_name="poster")
     body = models.TextField()
+    likes = models.ManyToManyField(User, related_name="likes")
     timestamp = models.DateTimeField(auto_now_add=True)
     archived = models.BooleanField(default=False)
 
+    def like_count(self):
+        return self.likes.count()
+    
     def serialize(self):
         return {
             "id": self.id,

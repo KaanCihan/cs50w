@@ -1,7 +1,8 @@
 document.addEventListener("DOMContentLoaded", function() {
+    
+
     document.querySelector('#click-allposts').addEventListener('click', () => load_timeline('allposts'));
     document.querySelector('#click-username').addEventListener('click', () => {
-        console.log('deneme');
         const data = document.querySelector('#click-username').getAttribute('data-username');
         load_timeline(data);
     });
@@ -28,15 +29,24 @@ document.addEventListener("DOMContentLoaded", function() {
     });
 
     function load_timeline(timeline) {
-        const timelineElement = document.querySelector('#timeline');
+        let postPage = 1;
+        const timelineElement = document.querySelector('#timeline');    
         timelineElement.style.display = 'block';
         timelineElement.innerHTML = '';
+
+        window.addEventListener("scroll", (event) => {
+            let scroll = this.scrollY;
+        });
 
         fetch(`/posts/${timeline}`)
             .then(response => response.json())
             .then(data => {
+                var csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]');
+
                 const posts = data.postArray;
-                
+                pageNumber = Math.ceil(posts.length / 5);
+                console.log(pageNumber)
+
                 let title = document.createElement("h1");
                 title.textContent = timeline.charAt(0).toUpperCase() + timeline.slice(1)
                 title.style.marginBottom = "20px";
@@ -58,12 +68,12 @@ document.addEventListener("DOMContentLoaded", function() {
                         fetch(`/posts/${data.user}/${timeline}`, {
                         method: 'PUT',
                         headers: {
-                            'X-CSRFToken': 'WbcFAtiFgqoeKdR5SZlN5ovxjJTicdU5M878zbVdT3sZwC7ghGSKD88LEl4BtfAw',
+                            'X-CSRFToken': `${csrfToken.value}`,
                             'Content-Type': 'application/json'
                         },
                         }).then(response => {
                             if (response.status === 204) {
-                                console.log('Followed successfully');
+                                console.log('Followed or unfollowed successfully');
                             } else {
                                 console.error('Failed to follow');
                             }
@@ -73,7 +83,6 @@ document.addEventListener("DOMContentLoaded", function() {
                         });
                     });
                 }
-
                 document.querySelector('#timeline').append(title);
                 
                 
@@ -85,62 +94,119 @@ document.addEventListener("DOMContentLoaded", function() {
                 const formattedDate = currentDate.toLocaleDateString('en-US', options);
                 console.log(formattedDate);
                 var parts1 = formattedDate.split(',');
+
                 
-                // Print posts
-                for (let i = 0; i < posts.length; i++){
-                    
-                    const posterr = document.createElement('a');
-                    posterr.setAttribute('href', 'javascript:;');
-                    posterr.setAttribute('data-username', posts[i].poster)
-                    posterr.style.fontWeight = 'bold';
-                    posterr.className = "username-a";
-                    posterr.innerHTML = posts[i].poster;
-                    posterr.classList.add('username-a');
-                    
-                    const body = document.createElement('span');
-                    body.innerHTML = posts[i].body;
-                    
-                    const post = document.createElement('div'); 
-                    
-                    const parts2 = posts[i].timestamp.split(',');
-                    var stamp;
-                    if (parts2[0] == parts1[0]){
-                        var difference = timeToSeconds(parts1[1]) - timeToSeconds(parts2[1]);
-                        if (difference < 60){
-                            stamp = difference + ' seconds ago';
-                        } else if (difference < 3600) {
-                            stamp = Math.floor(difference / 60) + ' minutes ago';
+
+                let loading = false;
+
+                window.addEventListener("scroll", function () {
+                    if (loading) {
+                        return; 
+                    }
+
+                    const windowHeight = window.innerHeight;
+                    const scrollY = window.scrollY;
+                    const documentHeight = document.documentElement.scrollHeight;
+
+
+                    if (windowHeight + scrollY >= documentHeight - 200) {
+                        loading = true; 
+                        print_post(posts, parts1, data, postPage);
+                        
+                        if (postPage == pageNumber) {
+                            loading = true;
                         } else {
-                            stamp = Math.floor(difference / 3600) + ' hours ago';
+                            loading = false;
+                        }
+                        postPage++;
+                        console.log(postPage)
+                    }
+                });
+
+                print_post(posts, parts1, data, postPage);
+                postPage++;
+                document.querySelectorAll('.edit-button').forEach(function(button) {
+                    button.onclick = function() {
+                        button.disabled = true;
+                        var clickedButton = this;
+                        let parentPost = clickedButton.parentNode;
+                        const postId = parentPost.id;
+                        const spanElement = parentPost.querySelector('.post-body').textContent;
+
+                        console.log(parentPost.querySelector('.post-body'));
+                        console.log(spanElement);
+                        console.log(parentPost);
+
+                        const textarea = document.createElement('textarea');
+                        textarea.value = spanElement;
+
+                        
+                        const saveButton = document.createElement('button');
+                        saveButton.textContent = 'Save';
+                        saveButton.className = 'btn btn-success save-button';
+
+                        parentPost.querySelector('.post-body').innerHTML = '';
+                        parentPost.appendChild(textarea);
+                        parentPost.appendChild(saveButton);
+
+                        saveButton.onclick = function() {
+                            parentPost.querySelector('.post-body').innerHTML = textarea.value;
+                            const updatedBody = textarea.value;
+
+                            fetch(`/update/${parentPost.id}`, {
+                                method: 'PUT',
+                                headers: {
+                                    'X-CSRFToken': `${csrfToken.value}`,
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({
+                                    body: updatedBody
+                                })
+                            })
+                            .then(response => response.json())
+                            .then(result => {
+                                button.disabled = false;
+                                console.log(result);
+                            });
+                            parentPost.removeChild(saveButton);
+                            parentPost.removeChild(textarea);
                         }
 
-                        console.log(secondsToTime(difference));
-                        var posted_ago = 0; 
-                    } else {
-                        stamp = posts[i].timestamp;
                     }
+                });
+                
+                
+                document.querySelectorAll('.btn.btn-outline-danger').forEach(function(button) {
+                    button.onclick = function() {
+                        
+                        console.log(document.scrollHeight);
 
-                    const time = document.createElement('span');
-                    time.innerHTML = stamp;
+                        const emptyLike = document.createElement('img');
+                        const like = document.createElement('img');
 
-                    if (posts[i].poster == data.user){
-                        const buttonEdit = document.createElement('button');
-                        buttonEdit.innerHTML = 'edit';
-                        post.appendChild(buttonEdit)
+                        console.log(scroll);
+
+                        emptyLike.src = emptyHeart;
+                        like.src = heart;
+                        like.style.width = "15px";
+                        emptyLike.style.width = "15px";
+                        fetch(`/posts/${data.user}/${this.id}/like`, {
+                            method: "POST",
+                            headers: {
+                                'X-CSRFToken': `${csrfToken.value}`,
+                                'Content-Type': 'application/json'
+                            }
+                        }).then(response => response.json())   
+                        .then(data => {
+                            button.innerHTML = '';
+                            if (data.liked_or_not){
+                                button.appendChild(like);
+                            } else {
+                                button.appendChild(emptyLike);
+                            }
+                        });
                     }
-
-                    post.style.marginBottom = "50px";
-                    post.classList.add('post-style');
-
-                    post.appendChild(posterr);
-                    post.appendChild(document.createElement('br'));
-                    post.appendChild(body);
-                    post.appendChild(document.createElement('br'));
-                    post.appendChild(time);
-                    
-                    
-                    document.querySelector('#timeline').append(post);
-                }
+                });
 
                 document.querySelectorAll('.username-a').forEach(function(anchor) {
                     anchor.onclick = function() {
@@ -197,4 +263,115 @@ function follow_unfollow(user, timeline, followButton){
     .catch(error => {
         console.error('An error occurred:', error);
     });
+}
+
+function like_unlike(user, id, likeButton){
+    fetch(`/posts/${user}/${id}/like`, {
+        method: "GET",
+        headers: {
+            'X-CSRFToken': `${csrfToken.value}`,
+            'Content-Type': 'application/json'
+        }
+    }).then(response => {
+        if (response.ok) { 
+            return response.json();
+        } else {
+            throw new Error('Request failed with status: ' + response.status);
+        }
+    }).then(data => {
+        if (data.liked_or_not){
+            likeButton.appendChild()
+        }
+    });
+}
+
+function print_post(posts, parts1, data, postPage){
+    console.log(postPage);
+    let c = postPage * 5;
+    if (c > posts.length){
+        c = posts.length;
+    }
+    const x = (postPage * 5) - 5;
+    console.log(x);
+    console.log(c);
+    for (let i = x; i < c; i++){
+        const emptyLike = document.createElement('img');
+        const like = document.createElement('img');
+
+        emptyLike.src = emptyHeart;
+        like.src = heart;
+
+        const posterr = document.createElement('a');
+        posterr.setAttribute('href', 'javascript:;');
+        posterr.setAttribute('data-username', posts[i].poster)
+        posterr.style.fontWeight = 'bold';
+        posterr.className = "username-a";
+        posterr.innerHTML = posts[i].poster;
+        
+        posterr.classList.add('username-a');
+        
+        const body = document.createElement('span');
+        body.innerHTML = posts[i].body;
+        body.className = "post-body";
+        
+        const post = document.createElement('div'); 
+        
+        const parts2 = posts[i].timestamp.split(',');
+        var stamp;
+        if (parts2[0] == parts1[0]){
+            var difference = timeToSeconds(parts1[1]) - timeToSeconds(parts2[1]);
+            if (difference < 60){
+                stamp = difference + ' seconds ago';
+            } else if (difference < 3600) {
+                stamp = Math.floor(difference / 60) + ' minutes ago';
+            } else {
+                stamp = Math.floor(difference / 3600) + ' hours ago';
+            }
+
+            console.log(secondsToTime(difference));
+            var posted_ago = 0; 
+        } else {
+            stamp = posts[i].timestamp;
+        }
+
+        const time = document.createElement('span');
+        time.innerHTML = stamp;
+
+        const likeButton = document.createElement('button');
+        
+        like.style.width = "15px";
+        emptyLike.style.width = "15px";
+        likeButton.className = "btn btn-outline-danger";
+        likeButton.style.padding = "0px";
+        likeButton.style.paddingRight = "5px";
+        likeButton.style.paddingLeft = "5px";
+        likeButton.style.margin = "10px";
+        likeButton.id = posts[i].id;
+        likeButton.appendChild(emptyLike);
+
+        
+        
+        post.style.marginBottom = "50px";
+        post.classList.add('post-style');
+        post.id = posts[i].id;
+
+        post.appendChild(posterr);
+        if (posts[i].poster == data.user){
+            const buttonEdit = document.createElement('button');
+            buttonEdit.className = 'edit-button';
+            buttonEdit.style.marginLeft = '10px';
+            buttonEdit.innerHTML = 'edit post';
+            post.appendChild(buttonEdit)
+        }
+        
+
+        post.appendChild(document.createElement('br'));
+        post.appendChild(body);
+        post.appendChild(document.createElement('br'));
+        post.appendChild(time);
+        post.appendChild(likeButton);
+        
+        document.querySelector('#timeline').append(post);
+        
+    }
 }
